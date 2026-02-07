@@ -214,15 +214,21 @@ option(LLVMLITE_SHARED
        ${LLVMLITE_SHARED_DEFAULT})
 
 
+# Tracks whether llvmlite is effectively linked against the monolithic
+# libLLVM shared library. This can differ from LLVMLITE_SHARED if a static
+# component-link attempt must be downgraded due to distribution packaging.
+set(LLVMLITE_EFFECTIVE_SHARED OFF)
+
+
 if (LLVMLITE_SHARED)
     check_library_exists(LLVM LLVMGetVersion "" HAVE_LIBRARY_LLVM)
     if(NOT HAVE_LIBRARY_LLVM)
         message(FATAL_ERROR "Could not find libLLVM")
     endif()
     set(llvm_libs LLVM)
+    set(LLVMLITE_EFFECTIVE_SHARED ON)
     message(STATUS
     "LLVMLITE_SHARED is ON, using dynamic linkage against LLVM")
-    add_definitions(-DHAVE_LLVMLITE_SHARED)
 else()
     # This doesn't work:
     # llvm_map_components_to_libnames(llvm_libs all)
@@ -290,9 +296,36 @@ else()
 
     # Map known components to library names for linkage
     llvm_map_components_to_libnames(llvm_libs ${LLVM_COMPONENTS})
+
+    # Some distributions package only the monolithic libLLVM shared library
+    # and omit LLVM component archives/shared objects. In that case fallback to
+    # dynamic linkage against libLLVM rather than failing at final link time.
+    cmake_push_check_state(RESET)
+    set(CMAKE_REQUIRED_LIBRARIES ${llvm_libs})
+    check_cxx_source_compiles("int main(void){return 0;}"
+                              HAVE_LLVM_COMPONENT_LINK)
+    cmake_pop_check_state()
+
+    if(NOT HAVE_LLVM_COMPONENT_LINK)
+        check_library_exists(LLVM LLVMGetVersion "" HAVE_LIBRARY_LLVM)
+        if(HAVE_LIBRARY_LLVM)
+            message(WARNING
+                    "LLVM component libraries are unavailable; falling back to monolithic libLLVM dynamic linkage")
+            set(llvm_libs LLVM)
+            set(LLVMLITE_EFFECTIVE_SHARED ON)
+        else()
+            message(FATAL_ERROR
+                    "Unable to link LLVM component libraries and libLLVM was not found")
+        endif()
+    endif()
+
     message(STATUS "LLVM_COMPONENTS: ${LLVM_COMPONENTS}")
     message(STATUS
     "LLVMLITE_SHARED is OFF, using static linkage against LLVM")
+endif()
+
+if(LLVMLITE_EFFECTIVE_SHARED)
+    add_definitions(-DHAVE_LLVMLITE_SHARED)
 endif()
 
 
@@ -303,7 +336,7 @@ set(LLVMLITE_LLVM_ASSERTIONS_OFF "0")
 set(LLVMLITE_LLVM_ASSERTIONS_ON "1")
 set(LLVMLITE_LLVM_ASSERTIONS_UNKNOWN "2")
 
-if(LLVMLITE_SHARED)
+if(LLVMLITE_EFFECTIVE_SHARED)
     add_definitions(
     -DLLVMLITE_LLVM_ASSERTIONS_STATE=${LLVMLITE_LLVM_ASSERTIONS_UNKNOWN})
     message(STATUS "LLVM assertions state detected as 'unknown'")
@@ -329,7 +362,7 @@ target_link_libraries(llvmlite ${llvm_libs})
 # suitability.
 if(UNIX AND NOT APPLE)
     set(FORCED_LINK_FLAGS "-Wl,--exclude-libs,ALL -Wl,--no-undefined")
-    if(NOT LLVMLITE_SHARED)
+    if(NOT LLVMLITE_EFFECTIVE_SHARED)
         # If LLVM is statically linked, we specify -Bsymbolic to prevent
         # that LLVM symbols can be interposed upon by previously
         # loaded shared objects that export LLVM symbols.

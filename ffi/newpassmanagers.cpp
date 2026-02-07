@@ -644,6 +644,7 @@ LLVMPY_module_AddModuleDebugInfoPrinterPass(LLVMModulePassManagerRef MPM) {
         llvm::unwrap(FPM)->addPass(NAME());                                    \
     }
 
+#undef FUNCTION_PASS_WITH_PARAMS
 #define FUNCTION_PASS_WITH_PARAMS(NAME, ...)                                   \
     API_EXPORT(void) LLVMPY_module_Add##NAME(LLVMModulePassManagerRef MPM) {   \
         llvm::unwrap(MPM)->addPass(                                            \

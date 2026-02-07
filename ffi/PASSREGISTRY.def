@@ -26,6 +26,11 @@ MODULE_PASS(StripNonDebugSymbolsPass)
 #ifndef FUNCTION_PASS
 #define FUNCTION_PASS(NAME)
 #endif
+
+#ifndef FUNCTION_PASS_WITH_PARAMS
+#define FUNCTION_PASS_WITH_PARAMS(NAME, ...)
+#endif
+
 FUNCTION_PASS(AAEvaluator)
 FUNCTION_PASS(SimplifyCFGPass)
 FUNCTION_PASS(LoopUnrollPass)

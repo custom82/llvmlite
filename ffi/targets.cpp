@@ -202,8 +202,9 @@ LLVMPY_CreateTargetMachine(LLVMTargetRef T, const char *Triple, const char *CPU,
 
     bool jit = JIT;
 
-    return wrap(unwrap(T)->createTargetMachine(Triple, CPU, Features, opt, rm,
-                                               cm, cgol, jit));
+    llvm::Triple target_triple(Triple);
+    return wrap(unwrap(T)->createTargetMachine(target_triple, CPU, Features,
+                                               opt, rm, cm, cgol, jit));
 }
 
 API_EXPORT(void)

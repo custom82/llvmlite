@@ -1,4 +1,5 @@
 #include "core.h"
+#include "llvm/Config/llvm-config.h"
 #include "llvm-c/TargetMachine.h"
 #include "llvm/Analysis/AliasAnalysisEvaluator.h"
 #include "llvm/Analysis/AliasSetTracker.h"
@@ -641,6 +642,16 @@ LLVMPY_module_AddModuleDebugInfoPrinterPass(LLVMModulePassManagerRef MPM) {
     API_EXPORT(void)                                                           \
     LLVMPY_function_Add##NAME(LLVMFunctionPassManagerRef FPM) {                \
         llvm::unwrap(FPM)->addPass(NAME());                                    \
+    }
+
+#define FUNCTION_PASS_WITH_PARAMS(NAME, ...)                                   \
+    API_EXPORT(void) LLVMPY_module_Add##NAME(LLVMModulePassManagerRef MPM) {   \
+        llvm::unwrap(MPM)->addPass(                                            \
+            createModuleToFunctionPassAdaptor(NAME(__VA_ARGS__)));             \
+    }                                                                          \
+    API_EXPORT(void)                                                           \
+    LLVMPY_function_Add##NAME(LLVMFunctionPassManagerRef FPM) {                \
+        llvm::unwrap(FPM)->addPass(NAME(__VA_ARGS__));                         \
     }
 #include "PASSREGISTRY.def"
 

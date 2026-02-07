@@ -110,7 +110,10 @@
 #include "llvm/Transforms/Instrumentation/InstrOrderFile.h"
 #endif
 #include "llvm/Transforms/Instrumentation/InstrProfiling.h"
+#if __has_include("llvm/Transforms/Instrumentation/MemProfiler.h")
 #include "llvm/Transforms/Instrumentation/MemProfiler.h"
+#define LLVMLITE_HAS_MEMPROFILER_PASS 1
+#endif
 #include "llvm/Transforms/Instrumentation/MemorySanitizer.h"
 #include "llvm/Transforms/Instrumentation/PGOInstrumentation.h"
 #include "llvm/Transforms/Instrumentation/SanitizerCoverage.h"

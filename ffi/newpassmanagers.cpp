@@ -655,6 +655,7 @@ LLVMPY_module_AddModuleDebugInfoPrinterPass(LLVMModulePassManagerRef MPM) {
         llvm::unwrap(FPM)->addPass(NAME(__VA_ARGS__));                         \
     }
 #include "PASSREGISTRY.def"
+#undef FUNCTION_PASS_WITH_PARAMS
 
 #define LOOP_PASS(NAME)                                                        \
     API_EXPORT(void) LLVMPY_module_Add##NAME(LLVMModulePassManagerRef MPM) {   \

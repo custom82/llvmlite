@@ -149,7 +149,9 @@ MODULE_PASS("msan-module", ModuleMemorySanitizerPass({}))
 MODULE_PASS("module-inline", ModuleInlinerPass())
 MODULE_PASS("tsan-module", ModuleThreadSanitizerPass())
 MODULE_PASS("sancov-module", ModuleSanitizerCoveragePass())
+#ifdef LLVMLITE_HAS_MEMPROFILER_PASS
 MODULE_PASS("memprof-module", ModuleMemProfilerPass())
+#endif
 MODULE_PASS("poison-checking", PoisonCheckingPass())
 MODULE_PASS("pseudo-probe-update", PseudoProbeUpdatePass())
 
@@ -261,7 +263,9 @@ FUNCTION_PASS("view-cfg-only", CFGOnlyViewerPass())
 FUNCTION_PASS("tlshoist", TLSVariableHoistPass())
 FUNCTION_PASS("transform-warning", WarnMissedTransformationsPass())
 FUNCTION_PASS("tsan", ThreadSanitizerPass())
+#ifdef LLVMLITE_HAS_MEMPROFILER_PASS
 FUNCTION_PASS("memprof", MemProfilerPass())
+#endif
 
 LOOP_PASS("canon-freeze", CanonicalizeFreezeInLoopsPass())
 LOOP_PASS("dot-ddg", DDGDotPrinterPass())
